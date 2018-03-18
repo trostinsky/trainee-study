@@ -1,0 +1,125 @@
+@import "./math";
+
+// Settings for wrapper
+$wrapper_bg: #fafafa;
+$left_gutter: 30px;
+$top_gutter: 20px;
+
+@mixin wrapper($width, $height) {
+  &__wrapper {
+    height: calc(#{$height} + #{$top_gutter} * 2);
+    width: calc(#{$width} + #{$left_gutter} * 2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: $wrapper_bg;
+  }
+}
+
+@mixin menu-burger($color, $width, $height, $strip_height: 2px) {
+  margin: 0 auto;
+  background-color: $color;
+  position: relative;
+  &::after, &::before, & {
+    width: $width;
+    height: $strip_height;
+    display: block;
+  }
+  &::after, &::before {
+    content: " ";
+    background-color: inherit;
+    position: absolute;
+  }
+  &::before {
+    top: round(-$height / 2);
+  }
+  &::after {
+    top: round($height / 2);
+  }
+  @include wrapper($width, $height);
+}
+
+@mixin close-icon($color, $side, $strip_height: 2px) {
+  width: $side;
+  height: $side;
+  display: inline-block;
+  position: relative;
+  overflow: hidden;
+  &::before, &::after {
+    content: "";
+    display: block;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: round(1.41421356 * $side) - $strip_height;
+    transform: translate(-50%, -50%) rotate(45deg);
+    height: $strip_height;
+    background-color: $color;
+  }
+  &::after {
+    transform: translate(-50%, -50%) rotate(-45deg);
+  }
+  @include wrapper($side, $side);
+}
+
+@mixin arrow($width, $height, $color, $turn: left, $strip_height: 2px) {
+  // For calculate width of arrow part, I use formula: diagonal = sqrt(width * width + height * height) / 2
+  // So, cause SASS doesn't have square values for px, I clear numbers from "px" using my func "strip-unit"
+  // Then, I find unit value of numbers(in examples it's "px", but can be anything), I use unit() function
+  // Then, I concat my number valuse from half-diagonal formula with unit value
+  // Then, I clear this value from quotes using function unquote
+
+  // Formula:
+  $diagonal: sqrt(strip-unit($width)*  strip-unit($width) +  strip-unit($height) *  strip-unit($height)) / 2;
+  $part_width: unquote($diagonal + unit($width));
+  $cosAlpha: strip-unit($width) / 2 / $diagonal;
+  $beforeTop: null;
+  $afterTop: null;
+  $beforeLeft: null;
+  $afterLeft: null;
+  $additional: null;
+  @if ($strip_height > 3px) {
+    $additional: 1px;
+  } @else {
+    $additional: 0px;
+  }
+  @if ($turn == bottom) {
+
+
+  } @else if ($turn == right) {
+    $afterTop: 3 * $height / 4 - $additional;
+    $beforeTop: $height / 4 + round($strip_height / 2);
+    $beforeLeft:50%;
+    $afterLeft:50%;
+  } @else if($turn == top) {
+    $beforeLeft: unquote($diagonal / 2 + unit($width));
+    $afterLeft:$diagonal + $strip_height;
+  } @else {
+    $beforeTop: 3 * $height / 4 - $additional;
+    $afterTop: $height / 4 + round($strip_height / 2);
+    $beforeLeft:50%;
+    $afterLeft:50%;
+  }
+  width: $width;
+  height: $height;
+  display: inline-block;
+  position: relative;
+  &::before, &::after {
+    content: "";
+    display: block;
+    background-color: $color;
+    height: $strip_height;
+    position: absolute;
+    width: $part_width;
+    content: "";
+    left: $beforeLeft;
+    top: $beforeTop;
+    transform: translate(-50%, -50%) rotate(#{arccos($cosAlpha)});
+  }
+  &::after {
+    top: $afterTop;
+    left: $afterLeft;
+    transform: translate(-50%, -50%) rotate(-#{arccos($cosAlpha)});
+  }
+  @include wrapper($width, $height);
+}
